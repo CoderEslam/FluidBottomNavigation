@@ -27,8 +27,8 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -47,10 +47,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.juraj.fluid.constant.Route
 import com.juraj.fluid.ui.theme.DEFAULT_PADDING
-import com.juraj.fluid.ui.theme.FluidBottomNavigationTheme
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -77,7 +77,9 @@ private fun getRenderEffect(): RenderEffect {
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    navController: NavController
+) {
     val isMenuExtended = remember { mutableStateOf(false) }
 
     val fabAnimationProgress by animateFloatAsState(
@@ -103,6 +105,7 @@ fun MainScreen() {
     }
 
     MainScreen(
+        navController = navController,
         renderEffect = renderEffect,
         fabAnimationProgress = fabAnimationProgress,
         clickAnimationProgress = clickAnimationProgress
@@ -113,18 +116,17 @@ fun MainScreen() {
 
 @Composable
 fun MainScreen(
+    navController: NavController,
     renderEffect: androidx.compose.ui.graphics.RenderEffect?,
     fabAnimationProgress: Float = 0f,
     clickAnimationProgress: Float = 0f,
     toggleAnimation: () -> Unit = { }
 ) {
     Box(
-        Modifier
-            .fillMaxSize()
-            .padding(bottom = 24.dp),
+        Modifier.padding(bottom = 24.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        CustomBottomNavigation()
+        CustomBottomNavigation(navController)
         Circle(
             color = MaterialTheme.colors.primary.copy(alpha = 0.5f),
             animationProgress = 0.5f
@@ -161,7 +163,13 @@ fun Circle(color: Color, animationProgress: Float) {
 }
 
 @Composable
-fun CustomBottomNavigation() {
+fun CustomBottomNavigation(
+    navController: NavController
+) {
+
+    data class IconsClass(val position: Int, val icon: ImageVector)
+    val states = listOf(IconsClass(0, Icons.Filled.Home), IconsClass(1, Icons.Filled.Person))
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -173,9 +181,21 @@ fun CustomBottomNavigation() {
             )
             .padding(horizontal = 40.dp)
     ) {
-        listOf(Icons.Filled.CalendarToday, Icons.Filled.Group).map { image ->
-            IconButton(onClick = { }) {
-                Icon(imageVector = image, contentDescription = null, tint = Color.White)
+        states.forEach { image ->
+            IconButton(onClick = {
+
+                if (image.position == 0) {
+                    navController.navigate(Route.HOME_SCREEN) {
+                        launchSingleTop = true
+                    }
+                } else {
+                    navController.navigate(Route.PROFILE_SCREEN) {
+                        launchSingleTop = true
+                    }
+                }
+
+            }) {
+                Icon(imageVector = image.icon, contentDescription = null, tint = Color.White)
             }
         }
     }
@@ -267,14 +287,5 @@ fun AnimatedFab(
                 tint = Color.White.copy(alpha = opacity)
             )
         }
-    }
-}
-
-
-@Composable
-@Preview(device = "id:pixel_4a", showBackground = true, backgroundColor = 0xFF3A2F6E)
-private fun MainScreenPreview() {
-    FluidBottomNavigationTheme {
-        MainScreen()
     }
 }
